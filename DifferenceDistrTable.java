@@ -3,39 +3,20 @@ import java.util.HashMap;
 /**
  * Created by aleksandrs on 2/26/17.
  */
-public class DifferenceDistrTable {
-
-    //S box
-    private static HashMap<Integer, Integer> S = new HashMap<Integer, Integer>() {{
-        put(0x0, 0x6);
-        put(0x1, 0x4);
-        put(0x2, 0xc);
-        put(0x3, 0x5);
-        put(0x4, 0x0);
-        put(0x5, 0x7);
-        put(0x6, 0x2);
-        put(0x7, 0xe);
-        put(0x8, 0x1);
-        put(0x9, 0xf);
-        put(0xa, 0x3);
-        put(0xb, 0xd);
-        put(0xc, 0x8);
-        put(0xd, 0xa);
-        put(0xe, 0x9);
-        put(0xf, 0xb);
-    }};
+public class DifferenceDistrTable extends Homework{
 
     /**
      * Given a u0, calculate v0^v1, assuming u0^u1=differential (Chosen plaintext attack)
      *
      * @param u0           Some message xored with the first key
      * @param differential Some differential
+     * @param Sbox         A specified S box
      * @return v0^v1
      */
-    static int get_v0_XOR_v1(int u0, int differential) {
+    static int get_v0_XOR_v1(int u0, int differential, HashMap<Integer, Integer> Sbox) {
         int u1 = u0 ^ differential;
-        int v0 = S.get(u0);
-        int v1 = S.get(u1);
+        int v0 = Sbox.get(u0);
+        int v1 = Sbox.get(u1);
         return v0 ^ v1;
     }
 
@@ -64,11 +45,12 @@ public class DifferenceDistrTable {
     }
 
     /**
-     * Get the difference table for an S box
+     * Get the difference distribution table for an S box
      *
-     * @return Difference table
+     * @param Sbox Some S box
+     * @return Difference distribution table
      */
-    static HashMap<Integer, HashMap<Integer, Integer>> getDifferenceTable() {
+    static HashMap<Integer, HashMap<Integer, Integer>> getDifferenceTable(HashMap<Integer, Integer> Sbox) {
 
         //A table with all the differentials
         HashMap<Integer, HashMap<Integer, Integer>> differenceTable = new HashMap<>();
@@ -77,30 +59,30 @@ public class DifferenceDistrTable {
             //A table for one differential
             HashMap<Integer, Integer> tableForOne = new HashMap<>();
             for (int u0 = 0; u0 <= 0xf; u0++) {
-                tableForOne.put(u0, get_v0_XOR_v1(u0, differential));
+                tableForOne.put(u0, get_v0_XOR_v1(u0, differential, Sbox));
             }
             HashMap<Integer, Integer> frequencyMap = getFrequencies(tableForOne);
             differenceTable.put(differential, frequencyMap);
-
         }
         return differenceTable;
     }
 
-    public static void main(String[] args) {
-        System.out.println("PRINTING DIFFERENCE MAP ");
-        HashMap<Integer, HashMap<Integer, Integer>> differenceTable = getDifferenceTable();
-        System.out.print(" ");
-        for (int i = 0; i <= 0xf; i++) {
-            System.out.print(" " + String.format("%x", i));
-        }
-        for (Integer key : differenceTable.keySet()) {
-            System.out.println();
-            System.out.print(String.format("%x", key) + "|");
-
-            for (int i = 0; i <= 0xf; i++) {
-                System.out.print(differenceTable.get(key).get(i) + " ");
-            }
-        }
-    }
+//debugging (printing difference distribution table)
+//    public static void main(String[] args) {
+//        System.out.println("PRINTING DIFFERENCE MAP ");
+//        HashMap<Integer, HashMap<Integer, Integer>> differenceTable = getDifferenceTable();
+//        System.out.print(" ");
+//        for (int i = 0; i <= 0xf; i++) {
+//            System.out.print(" " + String.format("%x", i));
+//        }
+//        for (Integer key : differenceTable.keySet()) {
+//            System.out.println();
+//            System.out.print(String.format("%x", key) + "|");
+//
+//            for (int i = 0; i <= 0xf; i++) {
+//                System.out.print(differenceTable.get(key).get(i) + " ");
+//            }
+//        }
+//    }
 
 }

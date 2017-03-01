@@ -1,37 +1,11 @@
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Created by aleksandrs on 2/25/17.
  */
-public class Exercise2 {
+public class Exercise2 extends Homework{
 
-    //S box
-    private static HashMap<Integer, Integer> S = new HashMap<Integer, Integer>() {{
-        put(0x0, 0x6);
-        put(0x1, 0x4);
-        put(0x2, 0xc);
-        put(0x3, 0x5);
-        put(0x4, 0x0);
-        put(0x5, 0x7);
-        put(0x6, 0x2);
-        put(0x7, 0xe);
-        put(0x8, 0x1);
-        put(0x9, 0xf);
-        put(0xa, 0x3);
-        put(0xb, 0xd);
-        put(0xc, 0x8);
-        put(0xd, 0xa);
-        put(0xe, 0x9);
-        put(0xf, 0xb);
-    }};
-    //Reverse of the S box
-    private static Map<Integer, Integer> reverseS =
-            S.entrySet()
-                    .stream()
-                    .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
 
     //List of tuples of messages and corresponding ciphertexts for cipherThree (Homework Exercise 2)
     private static ArrayList<Tuple> newListMessCiphers =
@@ -55,7 +29,7 @@ public class Exercise2 {
             }};
 
     //get the difference table from DDT class
-    static HashMap<Integer, HashMap<Integer, Integer>> differenceTable = DifferenceDistrTable.getDifferenceTable();
+    static HashMap<Integer, HashMap<Integer, Integer>> differenceTable = DifferenceDistrTable.getDifferenceTable(S);
 
     /**
      * Break cipher 3
@@ -64,7 +38,7 @@ public class Exercise2 {
      * @return HashMap with counters for each key guess:
      * the largest counter should correspond to the most probable key
      */
-    private static HashMap<Integer, Integer> breakItToo(ArrayList<Tuple> newListMessCiphers) {
+    private static HashMap<Integer, Integer> breakCipher3(ArrayList<Tuple> newListMessCiphers) {
         //initialize key guesses; make their corresponding counters 0
         HashMap<Integer, Integer> keyCounters = new HashMap<>();
         for (int i = 0; i <= 0xf; i++) {
@@ -75,12 +49,9 @@ public class Exercise2 {
         ArrayList<Tuple<Tuple, Tuple>> mcPairs = new ArrayList<>();
         for (int i = 0; i < newListMessCiphers.size(); i++) {
             for (int j = i + 1; j < newListMessCiphers.size(); j++) {
-                //System.out.println("I am taking pair " + i + ":" + j);
                 Tuple<Integer, Integer> a = newListMessCiphers.get(i);
                 Tuple<Integer, Integer> b = newListMessCiphers.get(j);
-                //System.out.println("Corresponding to values " + a + " " + b);
                 mcPairs.add(new Tuple(a, b));
-                //}
             }
         }
         System.out.println("Printing all the pairs: " + mcPairs);
@@ -109,7 +80,7 @@ public class Exercise2 {
                 // the highest probability for this differential
                 int max = 0;
                 HashMap<Integer, Integer> entryFrequency = differenceTable.get(differential);
-                for (Integer frequency: entryFrequency.values()){
+                for (Integer frequency : entryFrequency.values()) {
                     if (frequency > max) {
                         max = frequency;
                     }
@@ -118,8 +89,8 @@ public class Exercise2 {
                 int bestCharacteristicRoundOne = 0;
                 //determine the best characteristic according to the most frequent value in the
                 //corresponding row of the difference table
-                for (Integer entry: entryFrequency.keySet()){
-                    if (entryFrequency.get(entry) == max){
+                for (Integer entry : entryFrequency.keySet()) {
+                    if (entryFrequency.get(entry) == max) {
                         bestCharacteristicRoundOne = entry;
                         break;
                     }
@@ -128,20 +99,19 @@ public class Exercise2 {
                 int maxTwo = 0;
                 //find the best second-round characteristic according to the difference distr table
                 HashMap<Integer, Integer> entryFrequencyTwo = differenceTable.get(bestCharacteristicRoundOne);
-                for (Integer frequency: entryFrequencyTwo.values()){
+                for (Integer frequency : entryFrequencyTwo.values()) {
                     if (frequency > maxTwo) {
                         maxTwo = frequency;
                     }
                 }
                 System.out.println("maxTwo = " + maxTwo);
                 //determine the best two-round characteristic
-                for (Integer entry: entryFrequencyTwo.keySet()){
-                    if (entryFrequencyTwo.get(entry) == maxTwo){
+                for (Integer entry : entryFrequencyTwo.keySet()) {
+                    if (entryFrequencyTwo.get(entry) == maxTwo) {
                         bestCharacteristicRoundTwo = entry;
                         break;
                     }
                 }
-
 
 
                 //Check if x0xorx1 is equal to the best two-round characteristic
@@ -157,10 +127,10 @@ public class Exercise2 {
     }
 
     public static void main(String[] args) {
-       // System.out.println(newListMessCiphers);
+        // System.out.println(newListMessCiphers);
 
         System.out.println("key counts for k3 = " +
-                breakItToo(newListMessCiphers)
+                breakCipher3(newListMessCiphers)
         );
 
         //Now assume k3 = 6 (from the counters)
@@ -168,86 +138,31 @@ public class Exercise2 {
 
         //Transform the ciphertexts using the guess key to make cipher3 essentially cipher2
         ArrayList<Tuple> finalNewListMessCiphers = (ArrayList<Tuple>) newListMessCiphers.clone();
-        for(int i = 0; i < finalNewListMessCiphers.size(); i++){
+        for (int i = 0; i < finalNewListMessCiphers.size(); i++) {
             Integer plaintext = (Integer) finalNewListMessCiphers.get(i).get1();
-            Integer newCiphertext = reverseS.get( (Integer) finalNewListMessCiphers.get(i).get2()^k3Guess );
+            Integer newCiphertext = reverseS.get((Integer) finalNewListMessCiphers.get(i).get2() ^ k3Guess);
             finalNewListMessCiphers.set(i, new Tuple(plaintext, newCiphertext));
         }
         System.out.println(newListMessCiphers);
         System.out.println(finalNewListMessCiphers);
         //And try to find k2
-        HashMap<Integer, Integer> keyCounts = Exercise1.breakIt(finalNewListMessCiphers);
+        HashMap<Integer, Integer> keyCounts = Exercise1.breakCipher2(finalNewListMessCiphers);
         System.out.println("keyCounts for k2 = " + keyCounts);
         //Assume k2 = 3 (from the counters)
         int k2Guess = 3;
         //And try to get guesses for k1
-        ArrayList<ArrayList<Integer>> guesses = getGuessesForK1(k2Guess, finalNewListMessCiphers);
+        HashMap<Integer, Integer> guesses = Exercise1.breakCipherOne(k2Guess, finalNewListMessCiphers);
         System.out.println("guesses for k1 = " + guesses);
         //k1 = 4
 
-
         //k0 = 1
 
-
-
+        //test
         System.out.println(encryptCipher3(6, 1, 4, 3, 6));
 
         /**
          * SOLUTION TO EXERCISE 2: k0=1, k1=4, k2=3, k3=6.
          */
-    }
-
-    /**
-     * Get guesses for k1
-     * @param key2 Our guess for k2 based on key counters
-     * @return ArrayList of Lists of Integers of potential keys for k1:
-     * the correct guess must be a part of every List
-     */
-    public static ArrayList<ArrayList<Integer>> getGuessesForK1(int key2, ArrayList<Tuple> plainsCiphers) {
-        ArrayList<Tuple> listMessCiphertextsForCipherOne = plainsCiphers;
-        //We have copied the list of given messages-ciphertexts. Now we need to change
-        // the ciphertexts to w using the obtained k2, while leaving messages intact.
-        for (int i = 0; i < listMessCiphertextsForCipherOne.size(); i++) {
-
-            listMessCiphertextsForCipherOne.set(i, new Tuple(listMessCiphertextsForCipherOne.get(i).get1(),
-                    reverseS.get((Integer) listMessCiphertextsForCipherOne.get(i).get2() ^ key2)));
-
-        }
-
-        ArrayList<ArrayList<Integer>> potentialKeys = new ArrayList<>();
-
-        ArrayList<Tuple<Tuple, Tuple>> mcPairs = new ArrayList<>();
-        for (int i = 0; i < listMessCiphertextsForCipherOne.size(); i++) {
-            for (int j = i + 1; j < listMessCiphertextsForCipherOne.size(); j++) {
-                //System.out.println("I am taking pair " + i + ":" + j);
-                Tuple<Integer, Integer> a = listMessCiphertextsForCipherOne.get(i);
-                Tuple<Integer, Integer> b = listMessCiphertextsForCipherOne.get(j);
-                //System.out.println("Corresponding to values " + a + " " + b);
-                mcPairs.add(new Tuple(a, b));
-                //}
-            }
-        }
-
-        HashMap<Integer, Integer> tu = new HashMap<>();
-        for (int i = 0; i < 0xf; i++) {
-            tu.put(i, 0);
-        }
-
-        for (int i = 0; i < mcPairs.size(); i++) {
-            ArrayList<Integer> guesses = new ArrayList<>();
-
-            int u0xoru1 = (Integer) mcPairs.get(i).get1().get1() ^ (Integer) mcPairs.get(i).get2().get1();
-            for (int t = 0; t < 0xf; t++) {
-                int u = reverseS.get(t ^ (Integer) mcPairs.get(i).get1().get2()) ^
-                        reverseS.get(t ^ (Integer) mcPairs.get(i).get2().get2());
-                if (u == u0xoru1) {
-                    guesses.add(t);
-                }
-                tu.put(t, u);
-            }
-            potentialKeys.add(guesses);
-        }
-        return potentialKeys;
     }
 
     /**
@@ -263,5 +178,4 @@ public class Exercise2 {
     private static int encryptCipher3(int m, int k0, int k1, int k2, int k3) {
         return S.get(S.get(S.get(m ^ k0) ^ k1) ^ k2) ^ k3;
     }
-
 }

@@ -1,39 +1,10 @@
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Created by aleksandrs on 2/12/17.
  */
-public class Exercise1 {
-
-    //S box
-    private static HashMap<Integer, Integer> S = new HashMap<Integer, Integer>() {{
-        put(0x0, 0x6);
-        put(0x1, 0x4);
-        put(0x2, 0xc);
-        put(0x3, 0x5);
-        put(0x4, 0x0);
-        put(0x5, 0x7);
-        put(0x6, 0x2);
-        put(0x7, 0xe);
-        put(0x8, 0x1);
-        put(0x9, 0xf);
-        put(0xa, 0x3);
-        put(0xb, 0xd);
-        put(0xc, 0x8);
-        put(0xd, 0xa);
-        put(0xe, 0x9);
-        put(0xf, 0xb);
-    }};
-
-    //Reverse of the S box
-    private static Map<Integer, Integer> reverseS =
-            S.entrySet()
-                    .stream()
-                    .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
-
+public class Exercise1 extends Homework{
 
     //List of tuples of messages and corresponding ciphertexts for cipherTwo
     private static ArrayList<Tuple> listMessCiphertexts =
@@ -47,32 +18,30 @@ public class Exercise1 {
             }};
 
     //get the difference table from DDT class
-    static HashMap<Integer, HashMap<Integer, Integer>> differenceTable = DifferenceDistrTable.getDifferenceTable();
+    static HashMap<Integer, HashMap<Integer, Integer>> differenceTable = DifferenceDistrTable.getDifferenceTable(S);
 
-    //Since we have 6 pairs, it must follow that the counter for the correct key should be around 6*(10/16)=4,
-    // while the counter for an incorrect key should be around 6*(1/16)=6/16 (0-1)
 
     /**
      * Break cipher 2
      *
-     * @param listMessCyphertexts The list of plaintext-ciphertext tuples
+     * @param listMessCiphertexts The list of plaintext-ciphertext tuples
      * @return HashMap with counters for each key guess:
      * the largest counter should correspond to the most probable key
      */
-    public static HashMap<Integer, Integer> breakIt(ArrayList<Tuple> listMessCyphertexts) {
+    public static HashMap<Integer, Integer> breakCipher2(ArrayList<Tuple> listMessCiphertexts) {
         //initialize key guesses; make their corresponding counters 0
         HashMap<Integer, Integer> keyCounters = new HashMap<>();
         for (int i = 0; i <= 0xf; i++) {
             keyCounters.put(i, 0);
         }
 
-        //Combine messages/cyphertexts into all possible pairs in a new List of Tuples of Tuples
+        //Combine messages/ciphertexts into all possible pairs in a new List of Tuples of Tuples
         ArrayList<Tuple<Tuple, Tuple>> mcPairs = new ArrayList<>();
-        for (int i = 0; i < listMessCyphertexts.size(); i++) {
-            for (int j = i + 1; j < listMessCyphertexts.size(); j++) {
+        for (int i = 0; i < listMessCiphertexts.size(); i++) {
+            for (int j = i + 1; j < listMessCiphertexts.size(); j++) {
                 //System.out.println("I am taking pair " + i + ":" + j);
-                Tuple<Integer, Integer> a = listMessCyphertexts.get(i);
-                Tuple<Integer, Integer> b = listMessCyphertexts.get(j);
+                Tuple<Integer, Integer> a = listMessCiphertexts.get(i);
+                Tuple<Integer, Integer> b = listMessCiphertexts.get(j);
                 //System.out.println("Corresponding to values " + a + " " + b);
                 mcPairs.add(new Tuple(a, b));
                 //}
@@ -103,7 +72,7 @@ public class Exercise1 {
                 // the highest probability for this differential
                 int max = 0;
                 HashMap<Integer, Integer> entryFrequency = differenceTable.get(differential);
-                for (Integer frequency: entryFrequency.values()){
+                for (Integer frequency : entryFrequency.values()) {
                     if (frequency > max) {
                         max = frequency;
                     }
@@ -112,8 +81,8 @@ public class Exercise1 {
                 int bestCharacteristic = 0;
                 //determine the best characteristic according to the most frequent value in the
                 //corresponding row of the difference table
-                for (Integer entry: entryFrequency.keySet()){
-                    if (entryFrequency.get(entry) == max){
+                for (Integer entry : entryFrequency.keySet()) {
+                    if (entryFrequency.get(entry) == max) {
                         bestCharacteristic = entry;
                         break;
                     }
@@ -134,18 +103,31 @@ public class Exercise1 {
 
     public static void main(String args[]) {
 
-        HashMap<Integer, Integer> keyCounts = breakIt(listMessCiphertexts);
-        System.out.println("keyCounts = " + keyCounts);
+        HashMap<Integer, Integer> keyCountsFork2 = breakCipher2(listMessCiphertexts);
+        System.out.println("keyCountsFork2 = " + keyCountsFork2);
 
         //Take k2 = 2 (largest counter)
-        ArrayList<ArrayList<Integer>> guesses = getGuessesForK1(2);
-        System.out.println("guesses = " + guesses);
+        HashMap<Integer, Integer> keyCountsFork1 = breakCipherOne(2, listMessCiphertexts);
+        System.out.println("keyCountsFork1 = " + keyCountsFork1);
         System.out.printf("Encrypted message %x with keys: %x, %x, %x is: ", 0xc, 2, 7, 2);
         System.out.println(String.format("%x", encryptCipher2(0xc, 2, 7, 2)));
 
         /**
          * SOLUTION TO EXERCISE 1: k0=2, k1=7, k2=2.
          */
+
+        Tuple<Integer, Integer> firstPair = listMessCiphertexts.get(0);
+        Tuple<Integer, Integer> secondPair = listMessCiphertexts.get(1);
+        System.out.println("firstPair = " + firstPair);
+        System.out.println("secondPair = " + secondPair);
+        int u = reverseS.get(reverseS.get(firstPair.get2() ^ 2) ^ 7);
+        System.out.println("u = " + u);
+        int k0 = firstPair.get1() ^ u;
+        System.out.println("k0 guess = " + k0);
+
+        System.out.println(
+                decryptCipher2(9, 2, 7, 2)
+        );
     }
 
     @SuppressWarnings("unchecked") //check though
@@ -156,18 +138,20 @@ public class Exercise1 {
      * @return ArrayList of Lists of Integers of potential keys for k1:
      * the correct guess must be a part of every List
      */
-    public static ArrayList<ArrayList<Integer>> getGuessesForK1(int key2) {
-        ArrayList<Tuple> listMessCiphertextsForCipherOne = (ArrayList<Tuple>) listMessCiphertexts.clone();
+    public static HashMap<Integer, Integer> breakCipherOne(int key2, ArrayList<Tuple> plainsCiphers) {
+        ArrayList<Tuple> listMessCiphertextsForCipherOne = (ArrayList<Tuple>) plainsCiphers.clone();
         //We have copied the list of given messages-ciphertexts. Now we need to change
         // the ciphertexts to w using the obtained k2, while leaving messages intact.
         for (int i = 0; i < listMessCiphertextsForCipherOne.size(); i++) {
-
             listMessCiphertextsForCipherOne.set(i, new Tuple(listMessCiphertextsForCipherOne.get(i).get1(),
                     reverseS.get((Integer) listMessCiphertextsForCipherOne.get(i).get2() ^ key2)));
-
         }
 
-        ArrayList<ArrayList<Integer>> potentialKeys = new ArrayList<>();
+        //initialize key guesses; make their corresponding counters 0
+        HashMap<Integer, Integer> keyCounters = new HashMap<>();
+        for (int i = 0; i <= 0xf; i++) {
+            keyCounters.put(i, 0);
+        }
 
         ArrayList<Tuple<Tuple, Tuple>> mcPairs = new ArrayList<>();
         for (int i = 0; i < listMessCiphertextsForCipherOne.size(); i++) {
@@ -181,26 +165,18 @@ public class Exercise1 {
             }
         }
 
-        HashMap<Integer, Integer> tu = new HashMap<>();
-        for (int i = 0; i < 0xf; i++) {
-            tu.put(i, 0);
-        }
-
         for (int i = 0; i < mcPairs.size(); i++) {
-            ArrayList<Integer> guesses = new ArrayList<>();
-
             int u0xoru1 = (Integer) mcPairs.get(i).get1().get1() ^ (Integer) mcPairs.get(i).get2().get1();
-            for (int t = 0; t < 0xf; t++) {
-                int u = reverseS.get(t ^ (Integer) mcPairs.get(i).get1().get2()) ^
-                        reverseS.get(t ^ (Integer) mcPairs.get(i).get2().get2());
+            for (Integer keyGuess : keyCounters.keySet()) {
+                int u = reverseS.get(keyGuess ^ (Integer) mcPairs.get(i).get1().get2()) ^
+                        reverseS.get(keyGuess ^ (Integer) mcPairs.get(i).get2().get2());
                 if (u == u0xoru1) {
-                    guesses.add(t);
+                    keyCounters.merge(keyGuess, 1, (oldValue, one) -> oldValue + one);
                 }
-                tu.put(t, u);
             }
-            potentialKeys.add(guesses);
         }
-        return potentialKeys;
+        System.out.println("PRINTING KEY COUNTERS FOR K1: " + keyCounters);
+        return keyCounters;
     }
 
     /**
@@ -214,5 +190,8 @@ public class Exercise1 {
      */
     private static int encryptCipher2(int m, int k0, int k1, int k2) {
         return S.get(S.get(m ^ k0) ^ k1) ^ k2;
+    }
+    private static int decryptCipher2(int c, int k0, int k1, int k2) {
+        return reverseS.get(reverseS.get(c ^ k2) ^ k1) ^ k0;
     }
 }
