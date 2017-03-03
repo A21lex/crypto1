@@ -8,7 +8,7 @@ public class Exercise2 extends Homework{
 
 
     //List of tuples of messages and corresponding ciphertexts for cipherThree (Homework Exercise 2)
-    private static ArrayList<Tuple> newListMessCiphers =
+    private static ArrayList<Tuple> listMessCiphers =
             new ArrayList<Tuple>() {{
                 add(new Tuple(0, 1));
                 add(new Tuple(1, 0xd));
@@ -61,14 +61,14 @@ public class Exercise2 extends Homework{
             for (Integer keyGuess : keyCounters.keySet()) {
                 //ciphertext of the first pair
                 int z0 = (Integer) mcPairs.get(i).get1().get2() ^ keyGuess;
-                System.out.println("z0 = " + z0);
+                //System.out.println("z0 = " + z0);
                 //ciphertext of the second pair
                 int z1 = (Integer) mcPairs.get(i).get2().get2() ^ keyGuess;
-                System.out.println("z1 = " + z1);
+                //System.out.println("z1 = " + z1);
                 int y0 = reverseS.get(z0);
                 int y1 = reverseS.get(z1);
                 int x0xorx1 = y0 ^ y1;
-                System.out.println("x0xorx1 = " + x0xorx1);
+                //System.out.println("x0xorx1 = " + x0xorx1);
 
                 //plaintext of the first pair
                 int p0 = (Integer) mcPairs.get(i).get1().get1();
@@ -85,7 +85,7 @@ public class Exercise2 extends Homework{
                         max = frequency;
                     }
                 }
-                System.out.println("max = " + max);
+                //System.out.println("max = " + max);
                 int bestCharacteristicRoundOne = 0;
                 //determine the best characteristic according to the most frequent value in the
                 //corresponding row of the difference table
@@ -104,7 +104,7 @@ public class Exercise2 extends Homework{
                         maxTwo = frequency;
                     }
                 }
-                System.out.println("maxTwo = " + maxTwo);
+                //System.out.println("maxTwo = " + maxTwo);
                 //determine the best two-round characteristic
                 for (Integer entry : entryFrequencyTwo.keySet()) {
                     if (entryFrequencyTwo.get(entry) == maxTwo) {
@@ -119,7 +119,7 @@ public class Exercise2 extends Homework{
                 if (x0xorx1 == bestCharacteristicRoundTwo) {
                     //Increment a counter for the key guess
                     keyCounters.merge(keyGuess, 1, (oldValue, one) -> oldValue + one);
-                    System.out.println("Increasing counter for key: " + keyGuess);
+                    //System.out.println("Increasing counter for key: " + keyGuess);
                 }
             }
         }
@@ -127,23 +127,23 @@ public class Exercise2 extends Homework{
     }
 
     public static void main(String[] args) {
-        // System.out.println(newListMessCiphers);
+        // System.out.println(listMessCiphers);
 
         System.out.println("key counts for k3 = " +
-                breakCipher3(newListMessCiphers)
+                breakCipher3(listMessCiphers)
         );
 
         //Now assume k3 = 6 (from the counters)
         int k3Guess = 6;
 
         //Transform the ciphertexts using the guess key to make cipher3 essentially cipher2
-        ArrayList<Tuple> finalNewListMessCiphers = (ArrayList<Tuple>) newListMessCiphers.clone();
+        ArrayList<Tuple> finalNewListMessCiphers = (ArrayList<Tuple>) listMessCiphers.clone();
         for (int i = 0; i < finalNewListMessCiphers.size(); i++) {
             Integer plaintext = (Integer) finalNewListMessCiphers.get(i).get1();
             Integer newCiphertext = reverseS.get((Integer) finalNewListMessCiphers.get(i).get2() ^ k3Guess);
             finalNewListMessCiphers.set(i, new Tuple(plaintext, newCiphertext));
         }
-        System.out.println(newListMessCiphers);
+        System.out.println(listMessCiphers);
         System.out.println(finalNewListMessCiphers);
         //And try to find k2
         HashMap<Integer, Integer> keyCounts = Exercise1.breakCipher2(finalNewListMessCiphers);
@@ -159,6 +159,18 @@ public class Exercise2 extends Homework{
 
         //test
         System.out.println(encryptCipher3(6, 1, 4, 3, 6));
+
+        Tuple<Integer, Integer> firstPair = listMessCiphers.get(0);
+        Tuple<Integer, Integer> secondPair = listMessCiphers.get(1);
+        System.out.println("firstPair = " + firstPair);
+        System.out.println("secondPair = " + secondPair);
+        int u = reverseS.get(reverseS.get(reverseS.get(firstPair.get2() ^ 6) ^ 3) ^ 4);
+        System.out.println("u = " + u);
+        int k0 = firstPair.get1() ^ u;
+        System.out.println("k0 guess = " + k0);
+
+        System.out.println(encryptCipher3(1, 1, 4, 3, 6));
+        System.out.println(encryptCipher3(0xc, 1, 4, 3, 6));
 
         /**
          * SOLUTION TO EXERCISE 2: k0=1, k1=4, k2=3, k3=6.

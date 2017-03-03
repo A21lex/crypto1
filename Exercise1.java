@@ -54,14 +54,14 @@ public class Exercise1 extends Homework{
             for (Integer keyGuess : keyCounters.keySet()) {
                 //ciphertext of the first pair xor key guess
                 int x0 = (Integer) mcPairs.get(i).get1().get2() ^ keyGuess;
-                System.out.println("x0 = " + x0);
+                //System.out.println("x0 = " + x0);
                 //ciphertext of the second pair xor key guess
                 int x1 = (Integer) mcPairs.get(i).get2().get2() ^ keyGuess;
-                System.out.println("x1 = " + x1);
+                //System.out.println("x1 = " + x1);
                 int w0 = reverseS.get(x0);
                 int w1 = reverseS.get(x1);
                 int v0xorv1 = w0 ^ w1;
-                System.out.println("v0xorv1 = " + v0xorv1);
+                //System.out.println("v0xorv1 = " + v0xorv1);
                 //plaintext of the first pair
                 int p0 = (Integer) mcPairs.get(i).get1().get1();
                 //plaintext of the second pair
@@ -77,7 +77,7 @@ public class Exercise1 extends Homework{
                         max = frequency;
                     }
                 }
-                System.out.println("max = " + max);
+                //System.out.println("max = " + max);
                 int bestCharacteristic = 0;
                 //determine the best characteristic according to the most frequent value in the
                 //corresponding row of the difference table
@@ -87,13 +87,13 @@ public class Exercise1 extends Homework{
                         break;
                     }
                 }
-                System.out.println("Best characteristic = " + bestCharacteristic);
+                //System.out.println("Best characteristic = " + bestCharacteristic);
                 //Check if v0xorv1 is equal to the best characteristic
                 // (from the difference table)
                 if (v0xorv1 == bestCharacteristic) {
                     //Increment counter for the key guess
                     keyCounters.merge(keyGuess, 1, (oldValue, one) -> oldValue + one);
-                    System.out.println("Increasing counter for key: " + keyGuess);
+                    //System.out.println("Increasing counter for key: " + keyGuess);
                 }
             }
         }
@@ -112,10 +112,6 @@ public class Exercise1 extends Homework{
         System.out.printf("Encrypted message %x with keys: %x, %x, %x is: ", 0xc, 2, 7, 2);
         System.out.println(String.format("%x", encryptCipher2(0xc, 2, 7, 2)));
 
-        /**
-         * SOLUTION TO EXERCISE 1: k0=2, k1=7, k2=2.
-         */
-
         Tuple<Integer, Integer> firstPair = listMessCiphertexts.get(0);
         Tuple<Integer, Integer> secondPair = listMessCiphertexts.get(1);
         System.out.println("firstPair = " + firstPair);
@@ -128,6 +124,11 @@ public class Exercise1 extends Homework{
         System.out.println(
                 decryptCipher2(9, 2, 7, 2)
         );
+
+
+        /**
+         * SOLUTION TO EXERCISE 1: k0=2, k1=7, k2=2.
+         */
     }
 
     @SuppressWarnings("unchecked") //check though
